@@ -37,7 +37,7 @@
 					     :port 8080)))
   (if (not interactive)
       (loop
-	 (sleep 3000))))))
+	 (sleep 3000))))
 
 (defun stop-pdash-webhook ()
   "Stop the web application."
