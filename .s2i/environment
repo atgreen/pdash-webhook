@@ -1,0 +1,2 @@
+APP_SYSTEM_NAME=pdash-webhook
+APP_EVAL="(webapp:start-pdash-webhook)"
