@@ -17,6 +17,9 @@ before_install:
     |  bash
   - docker build -f Dockerfile --build-arg PDASH_WEBHOOK_VERSION="$(git describe --tags --dirty=+)" -t $REPO:latest .
 
+script:
+  - ls
+
 after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
