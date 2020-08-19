@@ -47,6 +47,8 @@
 
   (hunchentoot:define-easy-handler (say-yo :uri "/yo") (name)
     (setf (hunchentoot:content-type*) "text/plain")
+    (format t (sb-ext:octets-to-string
+	       (hunchentoot:raw-post-data :request hunchentoot:*request*)))
     (format nil (sb-ext:octets-to-string
 		 (hunchentoot:raw-post-data :request hunchentoot:*request*))))
   
