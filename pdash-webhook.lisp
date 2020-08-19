@@ -32,6 +32,8 @@
   "Start the web application and have the main thread sleep forever,
   unless INTERACTIVE is non-nil."
   (format t "** Starting hunchentoot on 8080~%")
+  (setf hunchentoot:*show-lisp-errors-p* t)
+  (setf hunchentoot:*show-lisp-backtraces-p* t)
   (setq *hunchentoot-server* (hunchentoot:start 
 			      (make-instance 'hunchentoot:easy-acceptor 
 					     :port 8080)))
