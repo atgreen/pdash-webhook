@@ -48,7 +48,8 @@
 (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
 
   (hunchentoot:define-easy-handler (say-yo :uri "/yo") (name)
-    (setf (hunchentoot:content-type*) "text/plain")
+    (setf (hunchentoot:content-type*) "text/plain") 
+    (print (hunchentoot:post-parameters*))
     (format t (sb-ext:octets-to-string
 	       (hunchentoot:raw-post-data :request hunchentoot:*request*)))
     (format nil (sb-ext:octets-to-string
