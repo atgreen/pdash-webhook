@@ -50,10 +50,10 @@
   (hunchentoot:define-easy-handler (say-yo :uri "/yo") (name)
     (setf (hunchentoot:content-type*) "text/plain") 
     (print (hunchentoot:post-parameters*))
-    (format t (sb-ext:octets-to-string
-	       (hunchentoot:raw-post-data :request hunchentoot:*request*)))
-    (format nil (sb-ext:octets-to-string
-		 (hunchentoot:raw-post-data :request hunchentoot:*request*))))
+    (let ((data (hunchentoot:raw-post-data :request hunchentoot:*request*)))
+      (when data
+	(format t (sb-ext:octets-to-string data))
+	(format nil (sb-ext:octets-to-string data))))))
   
   (hunchentoot:define-easy-handler (status :uri "/status") ()
     (setf (hunchentoot:content-type*) "text/plain")
