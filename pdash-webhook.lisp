@@ -53,8 +53,8 @@
     (let ((data (hunchentoot:raw-post-data :request hunchentoot:*request*)))
       (when data
 	(format t (sb-ext:octets-to-string data))
-	(format nil (sb-ext:octets-to-string data))))))
-  
+	(format nil (sb-ext:octets-to-string data)))))
+
   (hunchentoot:define-easy-handler (status :uri "/status") ()
     (setf (hunchentoot:content-type*) "text/plain")
     (format nil "It's all good"))
