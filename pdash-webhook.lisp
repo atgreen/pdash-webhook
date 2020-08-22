@@ -45,15 +45,26 @@
   "Stop the web application."
   (hunchentoot:stop *hunchentoot-server*))
 
+(defvar *username* "myusername")
+(defvar *password* "mypassword")
+
+(defmacro with-http-authentication (&rest body)
+  `(multiple-value-bind (username password) (hunchentoot:authorization)
+     (cond ((and (string= username *username*) (string= password *password*))
+            ,@body)
+           (t (hunchentoot:require-authorization "pdash-webhook")))))
+
+
 (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
 
   (hunchentoot:define-easy-handler (say-yo :uri "/yo") (name)
-    (setf (hunchentoot:content-type*) "text/plain") 
-    (print (hunchentoot:post-parameters*))
-    (let ((data (hunchentoot:raw-post-data :request hunchentoot:*request*)))
-      (when data
-	(format t (sb-ext:octets-to-string data))
-	(format nil (sb-ext:octets-to-string data)))))
+    (with-http-authentication
+	(setf (hunchentoot:content-type*) "text/plain") 
+      (print (hunchentoot:post-parameters*))
+      (let ((data (hunchentoot:raw-post-data :request hunchentoot:*request*)))
+	(when data
+	  (format t (sb-ext:octets-to-string data))
+	  (format nil (sb-ext:octets-to-string data))))))
 
   (hunchentoot:define-easy-handler (status :uri "/status") ()
     (setf (hunchentoot:content-type*) "text/plain")
