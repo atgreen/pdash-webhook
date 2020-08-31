@@ -23,5 +23,5 @@
   :serial t
   :components ((:file "package")
 	       (:file "pdash-webhook"))
-  :depends-on (:hunchentoot))
+  :depends-on (:hunchentoot :cl-stomp))
 

@@ -26,6 +26,9 @@
 
 (defvar *default-port-string* "8080")
 
+(defvar *stomp* nil)
+(defparameter *amq-host* "amq-broker")
+
 ;; Start the web app.
 
 (defun start-pdash-webhook (&rest interactive)
@@ -34,6 +37,7 @@
   (format t "** Starting hunchentoot on 8080~%")
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
+  (setf *stomp* (stomp:make-connection *amq-host* 8161))
   (setq *hunchentoot-server* (hunchentoot:start 
 			      (make-instance 'hunchentoot:easy-acceptor 
 					     :port 8080)))
@@ -54,7 +58,6 @@
             ,@body)
            (t (hunchentoot:require-authorization "pdash-webhook")))))
 
-
 (EVAL-WHEN (:COMPILE-TOPLEVEL :LOAD-TOPLEVEL :EXECUTE)
 
   (hunchentoot:define-easy-handler (say-yo :uri "/yo") (name)
@@ -63,6 +66,7 @@
       (print (hunchentoot:post-parameters*))
       (let ((data (hunchentoot:raw-post-data :request hunchentoot:*request*)))
 	(when data
+	  (stomp:post *stomp* (sb-ext:octets-to-string data) "/topic/tower-notification")
 	  (format t (sb-ext:octets-to-string data))
 	  (format nil (sb-ext:octets-to-string data))))))
 
