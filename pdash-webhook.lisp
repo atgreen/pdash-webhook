@@ -31,19 +31,16 @@
 
 ;; Start the web app.
 
-(defun start-pdash-webhook (&rest interactive)
-  "Start the web application and have the main thread sleep forever,
-  unless INTERACTIVE is non-nil."
+(defun start-pdash-webhook ()
+  "Start the web application and start the AMQ connection."
   (format t "** Starting hunchentoot on 8080~%")
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
-  (setf *stomp* (stomp:make-connection *amq-host* 61613))
+  (setf *stomp* (stomp:make-connection *amq-host* 61612))
   (setq *hunchentoot-server* (hunchentoot:start 
 			      (make-instance 'hunchentoot:easy-acceptor 
 					     :port 8080)))
-  (if (not interactive)
-      (loop
-	 (sleep 3000))))
+  (stomp:start))
 
 (defun stop-pdash-webhook ()
   "Stop the web application."
