@@ -37,7 +37,7 @@
   (format t "** Starting hunchentoot on 8080~%")
   (setf hunchentoot:*show-lisp-errors-p* t)
   (setf hunchentoot:*show-lisp-backtraces-p* t)
-  (setf *stomp* (stomp:make-connection *amq-host* 8161))
+  (setf *stomp* (stomp:make-connection *amq-host* 61613))
   (setq *hunchentoot-server* (hunchentoot:start 
 			      (make-instance 'hunchentoot:easy-acceptor 
 					     :port 8080)))
