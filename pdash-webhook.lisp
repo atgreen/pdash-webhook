@@ -40,7 +40,7 @@
   (setq *hunchentoot-server* (hunchentoot:start 
 			      (make-instance 'hunchentoot:easy-acceptor 
 					     :port 8080)))
-  (stomp:start))
+  (stomp:start *stomp*))
 
 (defun stop-pdash-webhook ()
   "Stop the web application."
