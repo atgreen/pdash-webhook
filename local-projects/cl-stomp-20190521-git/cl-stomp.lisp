@@ -465,18 +465,19 @@
                  (let ((heart-beat (assoc :heart-beat headers :test #'header=)))
                    (when heart-beat
                      (multiple-value-bind (sx sy) 
-                         (string-split (cadr heart-beat ","))
+                         (string-split (cadr heart-beat) ",")
                        (let ((period-ms (parse-integer sy)))
                          (with-slots (stream stream-lock terminate) conn
-                           (bt:make-thread
-                            (lambda ()
-                              (loop until terminate
-                                    do (progn
-                                         (sleep (/ period-ms 1000))
-                                         (bt:with-lock-held (stream-lock)
-                                           (log-debug "sending heartbeat")
-                                           (write-byte 10 stream)
-                                           (finish-output stream)))))))))))))
+                           (when (> period-ms 0)
+                             (bt:make-thread
+                              (lambda ()
+                                (loop until terminate
+                                      do (progn
+                                           (sleep (/ period-ms 1000))
+                                           (bt:with-lock-held (stream-lock)
+                                             (log-debug "sending heartbeat")
+                                             (write-byte 10 stream)
+                                             (finish-output stream))))))))))))))
              (apply-callbacks conn frame))
            (extract-frame ()
              ;; Identify frames by looking for NULLs
