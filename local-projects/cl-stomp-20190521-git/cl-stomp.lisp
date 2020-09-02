@@ -375,7 +375,8 @@
                     (sleep 10)
                     (bt:with-lock-held (stream-lock)
                       (log-debug "sending heartbeat")
-                      (write-sequence (babel:string-to-octets (format nil "~%")) stream)
+                      (write-byte 10 stream)
+;;                      (write-sequence (babel:string-to-octets (format nil "~%")) stream)
                       (finish-output stream)))))))
     conn))
 
