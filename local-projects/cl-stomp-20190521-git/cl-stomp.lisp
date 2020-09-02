@@ -73,7 +73,6 @@
           (values (subseq string 0 start)
                   (subseq string start2)))))))
 
-
 ;;;-------------------------------------------------------------------------
 ;;; The CL-STOMP API
 
@@ -349,6 +348,7 @@
          :initarg :port)
    (stream :initform nil
            :initarg :stream)
+   (stream-lock :initform (bt:make-lock))
    (encoding :initform :utf-8)           ;only utf-8 is currently supported
    (registrations :type list
                   :initform ()
@@ -363,12 +363,20 @@
                         &key (key-mapping-strategy 'pass-through-key-mapping-strategy))
   (check-type host string)
   (check-type port integer)
-  (make-instance 'connection
-    :host host
-    :port port
-    :key-mapping-strategy (make-instance key-mapping-strategy)))
-
-
+  (let ((conn (make-instance 'connection
+                             :host host
+                             :port port
+                             :key-mapping-strategy (make-instance key-mapping-strategy))))
+    (bt:make-thread
+     (lambda ()
+       (sleep 10)
+       (with-slots (stream stream-lock terminated) conn
+         (bt:with-lock-held (stream-lock)
+           (unless terminated
+             (log-debug "sending heartbeat")
+             (write-sequence (format nil "~%") stream)
+             (finish-output stream))))))
+    conn))
 
 ;;;-------------------------------------------------------------------------
 ;;; Implementation of the API
@@ -380,10 +388,10 @@
       ((t (lambda (e)
             (disconnect conn)
             (log-debug "Error: ~A" e))))
-    (with-slots (host port stream registrations terminate) conn
+    (with-slots (host port stream stream-lock registrations terminate) conn
       (usocket:with-client-socket (socket strm host port
-                                   :protocol :stream
-                                   :element-type '(unsigned-byte 8))
+                                          :protocol :stream
+                                          :element-type '(unsigned-byte 8))
         (setf stream strm)
         ;; Send CONNECT frame
         (connect conn username passcode)
@@ -432,10 +440,11 @@
                (write-string (render-frame frame conn) stream))))
 
 (defmethod send ((conn connection) (string string))
-  (with-slots (stream encoding) conn
-    (log-debug "sending frame: ~A~%" string)
-    (write-sequence (babel:string-to-octets string :encoding encoding) stream)
-    (finish-output stream)))
+  (with-slots (stream stream-lock encoding) conn
+    (bt:with-lock-held (stream-lock)
+      (log-debug "sending frame: ~A~%" string)
+      (write-sequence (babel:string-to-octets string :encoding encoding) stream)
+      (finish-output stream))))
 
 (defmethod receive ((conn connection))
   "Called whenever there's activity on the connection stream.

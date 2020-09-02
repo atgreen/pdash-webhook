@@ -9,5 +9,5 @@
   :description "Implements the STOMP protocol for connecting to a message broker."
   :author "Keith Irwin, Matt Reklaitis"
   :licence "MIT-style License"
-  :depends-on (:usocket :babel)
+  :depends-on (:usocket :babel :bordeaux-threads)
   :components ((:file "cl-stomp")))
