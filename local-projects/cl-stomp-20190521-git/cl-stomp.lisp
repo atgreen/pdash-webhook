@@ -371,11 +371,12 @@
      (lambda ()
        (with-slots (stream stream-lock terminate) conn
          (loop until terminate
-            (sleep 10)
-            (bt:with-lock-held (stream-lock)
-              (log-debug "sending heartbeat")
-              (write-sequence (babel:string-to-octets (format nil "~%")) stream)
-              (finish-output stream))))))
+               do (progn
+                    (sleep 10)
+                    (bt:with-lock-held (stream-lock)
+                      (log-debug "sending heartbeat")
+                      (write-sequence (babel:string-to-octets (format nil "~%")) stream)
+                      (finish-output stream)))))))
     conn))
 
 ;;;-------------------------------------------------------------------------
