@@ -471,6 +471,10 @@
   "Try to extract and process frame(s) from buffer.  Returns unprocessed buffer."
   (labels ((process-frame (frame)
              (log-debug "Frame: ~A" frame)
+             (with-slots (name headers) frame
+               (if (string= name "CONNECTED")
+                   (let ((heart-beat (assoc :heart-beat headers :test #'header=)))
+                     (log-debug (format nil "HEARTBEAT ~A" heart-beat)))))
              (apply-callbacks conn frame))
            (extract-frame ()
              ;; Identify frames by looking for NULLs
