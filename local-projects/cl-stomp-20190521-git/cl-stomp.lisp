@@ -370,9 +370,9 @@
     (bt:make-thread
      (lambda ()
        (sleep 10)
-       (with-slots (stream stream-lock terminated) conn
+       (with-slots (stream stream-lock terminate) conn
          (bt:with-lock-held (stream-lock)
-           (unless terminated
+           (unless terminate
              (log-debug "sending heartbeat")
              (write-sequence (format nil "~%") stream)
              (finish-output stream))))))
