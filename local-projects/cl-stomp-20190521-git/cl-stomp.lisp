@@ -41,14 +41,14 @@
 ;;;-------------------------------------------------------------------------
 ;;; Convenience utils
 
-#+nil
+#-nil
 (defun log-debug (fmt &rest args)
   (fresh-line *standard-output*)
   (apply #'format *standard-output* fmt args)
   (fresh-line *standard-output*)
   (force-output *standard-output*))
 
-#-nil
+#+nil
 (defun log-debug (fmt &rest args)
   (declare (ignore fmt args)))
 
