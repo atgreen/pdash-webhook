@@ -369,13 +369,13 @@
                              :key-mapping-strategy (make-instance key-mapping-strategy))))
     (bt:make-thread
      (lambda ()
-       (sleep 10)
        (with-slots (stream stream-lock terminate) conn
-         (bt:with-lock-held (stream-lock)
-           (unless terminate
-             (log-debug "sending heartbeat")
-             (write-sequence (format nil "~%") stream)
-             (finish-output stream))))))
+         (loop until terminate
+            (sleep 10)
+            (bt:with-lock-held (stream-lock)
+              (log-debug "sending heartbeat")
+              (write-sequence (babel:string-to-octets (format nil "~%")) stream)
+              (finish-output stream))))))
     conn))
 
 ;;;-------------------------------------------------------------------------
