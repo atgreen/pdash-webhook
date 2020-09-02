@@ -411,10 +411,13 @@
 (defmethod connect ((conn connection) &optional username passcode)
   (check-type username (or null string))
   (check-type passcode (or null string))
-  (sending-frame (conn frame "CONNECT"
-                       "heart-beat" "0,0"
-                       "login" username
-                       "passcode" passcode)))
+  (with-slots (host) conn
+    (sending-frame (conn frame "CONNECT"
+                         "accept-version" "1.2"
+                         "host" host
+                         "heart-beat" "0,0"
+                         "login" username
+                         "passcode" passcode))))
 
 (defmethod disconnect ((conn connection))
   (with-slots (stream) conn
@@ -429,7 +432,8 @@
                (write-string (render-frame frame conn) stream))))
 
 (defmethod send ((conn connection) (string string))
-  (with-slots (stream encoding) conn 
+  (with-slots (stream encoding) conn
+    (log-debug "sending frame: ~A~%" string)
     (write-sequence (babel:string-to-octets string :encoding encoding) stream)
     (finish-output stream)))
 
