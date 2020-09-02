@@ -349,6 +349,7 @@
    (stream :initform nil
            :initarg :stream)
    (stream-lock :initform (bt:make-lock))
+   (heart-beat-period :initform nil)
    (encoding :initform :utf-8)           ;only utf-8 is currently supported
    (registrations :type list
                   :initform ()
@@ -363,22 +364,10 @@
                         &key (key-mapping-strategy 'pass-through-key-mapping-strategy))
   (check-type host string)
   (check-type port integer)
-  (let ((conn (make-instance 'connection
-                             :host host
-                             :port port
-                             :key-mapping-strategy (make-instance key-mapping-strategy))))
-    (bt:make-thread
-     (lambda ()
-       (with-slots (stream stream-lock terminate) conn
-         (loop until terminate
-               do (progn
-                    (sleep 10)
-                    (bt:with-lock-held (stream-lock)
-                      (log-debug "sending heartbeat")
-                      (write-byte 10 stream)
-;;                      (write-sequence (babel:string-to-octets (format nil "~%")) stream)
-                      (finish-output stream)))))))
-    conn))
+  (make-instance 'connection
+                 :host host
+                 :port port
+                 :key-mapping-strategy (make-instance key-mapping-strategy)))
 
 ;;;-------------------------------------------------------------------------
 ;;; Implementation of the API
@@ -472,9 +461,22 @@
   (labels ((process-frame (frame)
              (log-debug "Frame: ~A" frame)
              (with-slots (name headers) frame
-               (if (string= name "CONNECTED")
-                   (let ((heart-beat (assoc :heart-beat headers :test #'header=)))
-                     (log-debug (format nil "HEARTBEAT ~A" heart-beat)))))
+               (when (string= name "CONNECTED")
+                 (let ((heart-beat (assoc :heart-beat headers :test #'header=)))
+                   (when heart-beat
+                     (multiple-value-bind (sx sy) 
+                         (string-split (cadr heart-beat ","))
+                       (let ((period-ms (parse-integer sy)))
+                         (with-slots (stream stream-lock terminate) conn
+                           (bt:make-thread
+                            (lambda ()
+                              (loop until terminate
+                                    do (progn
+                                         (sleep (/ period-ms 1000))
+                                         (bt:with-lock-held (stream-lock)
+                                           (log-debug "sending heartbeat")
+                                           (write-byte 10 stream)
+                                           (finish-output stream)))))))))))))
              (apply-callbacks conn frame))
            (extract-frame ()
              ;; Identify frames by looking for NULLs
